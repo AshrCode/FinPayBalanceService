@@ -10,8 +10,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Get db connectionstring
+var connectionString = builder.Configuration.GetConnectionString("FinPayBalConnection");
+
 // Adding dependencies
-builder.Services.AddApplicationDependencies();
+builder.Services.AddApplicationDependencies(connectionString);
 
 var app = builder.Build();
 

@@ -1,27 +1,35 @@
-﻿using Domain.Entities;
+﻿using Common.ApiException;
+using Domain.Entities;
 using Microsoft.Extensions.Logging;
+using Persistence.Account;
 
 namespace Application.AccountBalance
 {
     public class AccountBalanceApp : IAccountBalanceApp
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<AccountBalanceApp> _logger;
+        private readonly IAccountRepository _accountRepository;
+
         private static float _balanceStorage = 6000;
 
-        public AccountBalanceApp(ILogger<AccountBalanceApp> logger)
+        public AccountBalanceApp(ILogger<AccountBalanceApp> logger, IAccountRepository accountRepository)
         {
             _logger = logger;
+            _accountRepository = accountRepository;
         }
 
-        public Task<UserAccount> GetAsync(Guid userId)
+        public async Task<UserAccount> GetAsync(Guid userId)
         {
-            UserAccount userAccount = new()
-            {
-                Balance = _balanceStorage,
-                Id = userId
-            };
+            var userAccount = await _accountRepository.GetById(userId);
 
-            return Task.FromResult(userAccount);
+            if (userAccount is null)
+            {
+                var errMessage = $"Unable to find the user account {userId}";
+                _logger.LogWarning(errMessage);
+                throw new ApiException(ApiErrorCodes.BadRequest, errMessage);
+            }
+
+            return userAccount;
         }
 
         public Task<UserAccount> DebitAmount(Guid userId, float amountToDebit)
