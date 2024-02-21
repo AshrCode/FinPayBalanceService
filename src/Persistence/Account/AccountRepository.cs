@@ -19,5 +19,25 @@ namespace Persistence.Account
 
             return userAccount;
         }
+
+        /// <summary>
+        /// Adds or update a user account.
+        /// </summary>
+        public async Task Save(UserAccount account)
+        {
+            var userAccount = await GetById(account.Id);
+
+            if (userAccount is null)
+            {
+                _dbContext.UserAccounts.Add(account);
+            }
+            else
+            {
+                userAccount.Balance = account.Balance;
+                userAccount.Currency = account.Currency;
+            }
+
+            _dbContext.SaveChanges();
+        }
     }
 }

@@ -10,8 +10,6 @@ namespace Application.AccountBalance
         private readonly ILogger<AccountBalanceApp> _logger;
         private readonly IAccountRepository _accountRepository;
 
-        private static float _balanceStorage = 6000;
-
         public AccountBalanceApp(ILogger<AccountBalanceApp> logger, IAccountRepository accountRepository)
         {
             _logger = logger;
@@ -32,18 +30,26 @@ namespace Application.AccountBalance
             return userAccount;
         }
 
-        public Task<UserAccount> DebitAmount(Guid userId, float amountToDebit)
+        public async Task<UserAccount> DebitAmount(Guid userId, float amountToDebit)
         {
-            _balanceStorage -= amountToDebit;
-            UserAccount userAccount = new()
+            // Validate and get user account
+            var userAccount = await GetAsync(userId);
+
+            // Verify the balance before debit.
+            if(amountToDebit > userAccount.Balance)
             {
-                Balance = _balanceStorage,
-                Id = userId
-            };
+                var errMessage = $"User account {userId} doesn't have sufficient balance.";
+                _logger.LogWarning(errMessage);
+                throw new ApiException(ApiErrorCodes.BadRequest, errMessage);
+            }
 
-            _logger.LogInformation($"Amount of {userAccount.Currency} {amountToDebit} has been debited from the account of the User {userId}");
+            userAccount.Balance -= amountToDebit;
+            
+            await _accountRepository.Save(userAccount);
 
-            return Task.FromResult(userAccount);
+            _logger.LogInformation($"Amount of {userAccount.Currency} {amountToDebit} has been debited from the user account {userId}");
+
+            return userAccount;
         }
     }
 }
