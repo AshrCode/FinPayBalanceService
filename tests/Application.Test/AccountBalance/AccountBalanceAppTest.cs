@@ -11,7 +11,7 @@ namespace Application.Test.AccountBalance
     public class AccountBalanceAppTest
     {
         private Mock<ILogger<AccountBalanceApp>> _mocklogger;
-        private Mock<IAccountRepository>  _mockAccountRepository;
+        private Mock<IAccountRepository> _mockAccountRepository;
         private AccountBalanceApp _app;
 
         [TestInitialize]
@@ -23,7 +23,7 @@ namespace Application.Test.AccountBalance
         }
 
         /// <summary>
-        /// Throws ApiException when invalid ID is passed.
+        /// Should throw ApiException when invalid ID is passed.
         /// </summary>
         [TestMethod]
         public async Task GetAsync_ThrowsApiExceptionWhenInValidIdIsPassed()
@@ -36,7 +36,7 @@ namespace Application.Test.AccountBalance
         }
 
         /// <summary>
-        /// Returns UserAccount object when valid ID is passed.
+        /// Should return UserAccount object when valid ID is passed.
         /// </summary>
         [TestMethod]
         public async Task GetAsync_ReturnsUserAccountWhenValidIdIsPassed()
@@ -50,6 +50,39 @@ namespace Application.Test.AccountBalance
 
             // Act
             var result = await _app.GetAsync(validUserId);
+
+            // Assert
+            Assert.AreEqual(userAccount, result);
+        }
+
+        /// <summary>
+        /// Should throw ApiException when debit amount is greater than actual balance.
+        /// </summary>
+        [TestMethod]
+        public async Task DebitAmount_ThrowsApiExceptionWhenDebitAmountIsGreaterThanActualBalance()
+        {
+            // Arrange
+            UserAccount userAccount = new() { Balance = 50 };
+            _mockAccountRepository.Setup(a => a.GetById(It.IsAny<Guid>()))
+                                  .Returns(Task.FromResult(userAccount));
+
+
+            // Assert
+            await Assert.ThrowsExceptionAsync<ApiException>(() => _app.DebitAmount(Guid.NewGuid(), 100));
+        }
+
+        /// <summary>
+        /// Should return UserAccount when valid debit amount is provided.
+        /// </summary>
+        [TestMethod]
+        public async Task DebitAmount_ReturnsUserAccountWhenValidDebitAmountIsProvided()
+        {
+            // Arrange
+            UserAccount userAccount = new() { Balance = 200 };
+            _mockAccountRepository.Setup(a => a.GetById(It.IsAny<Guid>()))
+                                  .Returns(Task.FromResult(userAccount));
+            // Act
+            var result = await _app.DebitAmount(new Guid(), 70);
 
             // Assert
             Assert.AreEqual(userAccount, result);
