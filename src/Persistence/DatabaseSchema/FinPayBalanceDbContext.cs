@@ -12,8 +12,7 @@ namespace Persistence.DatabaseSchema
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
-            // Seeding data
+            // Seeding User data
             modelBuilder.Entity<UserAccount>().HasData(
                 new UserAccount {
 
@@ -29,6 +28,5 @@ namespace Persistence.DatabaseSchema
                 }
             );
         }
-
     }
 }

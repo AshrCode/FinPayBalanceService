@@ -29,7 +29,7 @@ namespace Persistence.Account
 
             if (userAccount is null)
             {
-                _dbContext.UserAccounts.Add(account);
+                await _dbContext.UserAccounts.AddAsync(account);
             }
             else
             {
@@ -37,7 +37,7 @@ namespace Persistence.Account
                 userAccount.Currency = account.Currency;
             }
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
